@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Package, ExternalLink, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Package, ExternalLink, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [invoiceUrl, setInvoiceUrl] = useState(null);
+  const [screenshotLightbox, setScreenshotLightbox] = useState(false);
 
   useEffect(() => {
     api.getOrder(id).then((data) => {
@@ -159,11 +160,16 @@ function OrderDetail() {
               {order.paymentScreenshot && (
                 <div>
                   <div className="text-[11px] uppercase text-muted-foreground tracking-wider mb-2">Payment screenshot</div>
-                  <img
-                    src={imageUrl(order.paymentScreenshot)}
-                    alt="Payment screenshot"
-                    className="rounded-xl border border-border/60 max-h-48 w-auto object-contain"
-                  />
+                  <button
+                    onClick={() => setScreenshotLightbox(true)}
+                    className="block rounded-xl border border-border/60 overflow-hidden hover:opacity-80 transition-opacity"
+                  >
+                    <img
+                      src={imageUrl(order.paymentScreenshot)}
+                      alt="Payment screenshot"
+                      className="max-h-48 w-auto object-contain"
+                    />
+                  </button>
                 </div>
               )}
             </CardContent>
@@ -249,6 +255,26 @@ function OrderDetail() {
           )}
         </div>
       </div>
+
+      {screenshotLightbox && order.paymentScreenshot && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setScreenshotLightbox(false)}
+        >
+          <button
+            onClick={() => setScreenshotLightbox(false)}
+            className="absolute top-4 right-4 h-8 w-8 rounded-full bg-black/40 text-white grid place-items-center hover:bg-black/60"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <img
+            src={imageUrl(order.paymentScreenshot)}
+            alt="Payment screenshot"
+            className="max-w-full max-h-full object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
