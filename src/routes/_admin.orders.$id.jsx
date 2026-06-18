@@ -165,7 +165,7 @@ function OrderDetail() {
             <CardContent className="space-y-3">
               {(order.invoice || invoiceUrl) ? (
                 <a
-                  href={invoiceUrl || order.invoice}
+                  href={invoiceUrl || pdfUrl(order.invoice)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
@@ -183,7 +183,7 @@ function OrderDetail() {
                 disabled={generating}
                 className="rounded-xl"
               >
-                {generating ? "Generating…" : order.invoice || invoiceUrl ? "Regenerate" : "Generate invoice"}
+                {generating ? "Generating…" : pdfUrl(order.invoice) || invoiceUrl ? "Regenerate" : "Generate invoice"}
               </Button>
             </CardContent>
           </Card>
