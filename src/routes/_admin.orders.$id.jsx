@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Package, ExternalLink } from "lucide-react";
+import { ArrowLeft, Package, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -144,7 +144,7 @@ function OrderDetail() {
             <CardHeader>
               <CardTitle className="text-base font-medium">Order details</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 text-sm">
                 <Field label="Quantity" value={String(order.quantity)} />
                 <Field label="Unit price" value={`₹${p.sellingPrice || "—"}`} />
@@ -152,9 +152,20 @@ function OrderDetail() {
                 <Field label="Cost" value={`₹${p.cost || "—"}`} />
                 <Field label="Offer price" value={p.offerPrice ? `₹${p.offerPrice}` : "—"} />
                 <Field label="GST" value={p.gstPercentage ? `${p.gstPercentage}%` : "—"} />
+                <Field label="Transaction ID" value={order.transactionId || "—"} />
                 <Field label="Created" value={new Date(order.createdAt).toLocaleDateString()} />
                 <Field label="Updated" value={new Date(order.updatedAt).toLocaleDateString()} />
               </div>
+              {order.paymentScreenshot && (
+                <div>
+                  <div className="text-[11px] uppercase text-muted-foreground tracking-wider mb-2">Payment screenshot</div>
+                  <img
+                    src={imageUrl(order.paymentScreenshot)}
+                    alt="Payment screenshot"
+                    className="rounded-xl border border-border/60 max-h-48 w-auto object-contain"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
