@@ -2,6 +2,7 @@ const BASE_URL_KEY = "admin.baseUrl";
 const TOKEN_KEY = "admin.token";
 const DEFAULT_BASE_URL = "https://api.lemonbalmtrading.in/api/v1";
 const ASSETS_BASE_URL = "https://assets.lemonbalmtrading.in/public/image";
+const PDF_BASE_URL = "https://assets.lemonbalmtrading.in/public/pdfs";
 
 export function getBaseUrl() {
   return localStorage.getItem(BASE_URL_KEY) || DEFAULT_BASE_URL;
@@ -89,6 +90,11 @@ export function imageUrl(path) {
   return `${ASSETS_BASE_URL}/${path.replace(/^\//, "")}`;
 }
 
+export function pdfUrl(path) {
+  if (!path) return null;
+  return `${PDF_BASE_URL}/${path.replace(/^\//, "")}`;
+}
+
 export const api = {
   // Auth
   login: (email, password) =>
@@ -143,8 +149,8 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
-  uploadInvoice: (id, form) =>
-    request(`/orders/${id}/invoice`, { method: "POST", body: form }),
+  generateInvoice: (id) =>
+    request(`/orders/${id}/invoice`, { method: "PUT" }),
 
   // Users
   listUsers: (params = {}) =>

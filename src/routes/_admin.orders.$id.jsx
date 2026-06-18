@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { api, ApiError, imageUrl } from "@/lib/admin-api";
+import { api, ApiError, imageUrl, pdfUrl } from "@/lib/admin-api";
 
 const statusTone = {
   PENDING: "bg-accent text-accent-foreground",
@@ -33,6 +33,8 @@ function OrderDetail() {
   const { id } = Route.useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [invoiceUrl, setInvoiceUrl] = useState(null);
 
   useEffect(() => {
     api.getOrder(id).then((data) => {
@@ -50,6 +52,20 @@ function OrderDetail() {
       setOrder((prev) => prev ? { ...prev, status: newStatus } : prev);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Status update failed");
+    }
+  }
+
+  async function handleGenerateInvoice() {
+    setGenerating(true);
+    try {
+      const result = await api.generateInvoice(order.id);
+      const url = pdfUrl(result.invoiceUrl);
+      setInvoiceUrl(url);
+      toast.success("Invoice generated");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Invoice generation failed");
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -142,14 +158,14 @@ function OrderDetail() {
             </CardContent>
           </Card>
 
-          {order.invoice && (
-            <Card className="rounded-2xl border-border/60 shadow-soft">
-              <CardHeader>
-                <CardTitle className="text-base font-medium">Invoice</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Card className="rounded-2xl border-border/60 shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-base font-medium">Invoice</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {(order.invoice || invoiceUrl) ? (
                 <a
-                  href={order.invoice}
+                  href={invoiceUrl || order.invoice}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
@@ -157,9 +173,20 @@ function OrderDetail() {
                   <ExternalLink className="h-4 w-4" />
                   View invoice
                 </a>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <p className="text-sm text-muted-foreground">No invoice generated yet.</p>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateInvoice}
+                disabled={generating}
+                className="rounded-xl"
+              >
+                {generating ? "Generating…" : order.invoice || invoiceUrl ? "Regenerate" : "Generate invoice"}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="lg:col-span-2 space-y-6">
