@@ -178,6 +178,10 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
+  // Leads
+  listLeads: (params = {}) =>
+    request("/leads/admin", { method: "GET", query: params }),
+
   // Dashboard
   getDashboard: () =>
     request("/dashboard", { method: "GET" }),
