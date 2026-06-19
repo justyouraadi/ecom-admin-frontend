@@ -190,7 +190,7 @@ export const api = {
 
   // Settings
   getSettings: () =>
-    request("/settings", { method: "GET" }),
+    request("/settings/admin", { method: "GET" }),
 
   updateSettings: (form) =>
     request("/settings", { method: "PUT", body: form }),
