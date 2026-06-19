@@ -192,6 +192,9 @@ export const api = {
   getSettings: () =>
     request("/settings", { method: "GET" }),
 
+  updateSettings: (form) =>
+    request("/settings", { method: "PUT", body: form }),
+
   // Dashboard
   getDashboard: () =>
     request("/dashboard", { method: "GET" }),
