@@ -1,18 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { api, imageUrl } from "@/lib/admin-api";
 
 export const Route = createFileRoute("/_admin/settings")({
   ssr: false,
@@ -20,73 +10,86 @@ export const Route = createFileRoute("/_admin/settings")({
 });
 
 function Settings() {
-  const [storeName, setStoreName] = useState("Lemonbalm Store");
-  const [notify, setNotify] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  function save(e) {
-    e.preventDefault();
-    toast.success("Preferences saved");
+  useEffect(() => {
+    api.getSettings().then((data) => {
+      setSettings(data.settings);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl space-y-6">
+        <header>
+          <h1 className="text-3xl font-medium tracking-tight">Settings</h1>
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </header>
+      </div>
+    );
+  }
+
+  if (!settings) {
+    return (
+      <div className="max-w-2xl space-y-6">
+        <header>
+          <h1 className="text-3xl font-medium tracking-tight">Settings</h1>
+          <p className="text-sm text-muted-foreground">Payment settings not configured yet.</p>
+        </header>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-2xl space-y-6">
       <header>
         <h1 className="text-3xl font-medium tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Workspace preferences</p>
+        <p className="text-sm text-muted-foreground">Payment configuration</p>
       </header>
 
       <Card className="rounded-2xl border-border/60 shadow-soft">
         <CardHeader>
-          <CardTitle className="text-base font-medium">General</CardTitle>
-          <CardDescription>Display name and notification preferences.</CardDescription>
+          <CardTitle className="text-base font-medium">UPI Details</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={save} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="storeName">Store name</Label>
-              <Input
-                id="storeName"
-                value={storeName}
-                onChange={(e) => setStoreName(e.target.value)}
-                className="h-11 rounded-xl"
+        <CardContent className="space-y-5">
+          {settings.qrCode && (
+            <div>
+              <div className="text-[11px] uppercase text-muted-foreground tracking-wider mb-2">QR Code</div>
+              <img
+                src={imageUrl(settings.qrCode)}
+                alt="UPI QR code"
+                className="rounded-xl border border-border/60 max-h-56 w-auto object-contain"
               />
             </div>
-            <ToggleRow
-              label="Email notifications"
-              description="Receive order updates by email."
-              checked={notify}
-              onChange={setNotify}
-            />
-            <ToggleRow
-              label="Dark mode preview"
-              description="Visual toggle for this preview only."
-              checked={darkMode}
-              onChange={setDarkMode}
-            />
-            <div className="flex justify-end pt-2">
-              <Button type="submit" className="rounded-xl shadow-glow">Save changes</Button>
-            </div>
-          </form>
+          )}
+          <Field label="UPI ID" value={settings.upiId} />
+          <Field label="Beneficiary" value={settings.beneficaryName} />
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl border-border/60 shadow-soft">
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Bank Account</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Field label="Bank" value={settings.bankName} />
+          <Field label="Account number" value={settings.accountNumber} />
+          <Field label="IFSC" value={settings.ifscCode} />
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function ToggleRow({
-  label,
-  description,
-  checked,
-  onChange,
-}) {
+function Field({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-border/60 px-4 py-3">
-      <div>
-        <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs text-muted-foreground">{description}</div>
-      </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
+    <div>
+      <div className="text-[11px] uppercase text-muted-foreground tracking-wider">{label}</div>
+      <div className="mt-0.5 font-medium">{value || "—"}</div>
     </div>
   );
 }

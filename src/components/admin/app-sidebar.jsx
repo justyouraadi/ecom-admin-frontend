@@ -4,6 +4,7 @@ import {
   ShoppingBag,
   Users,
   MessageSquare,
+  Settings,
   LogOut,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ const items = [
   { title: "Orders", url: "/orders", icon: ShoppingBag },
   { title: "Users", url: "/users", icon: Users },
   { title: "Leads", url: "/leads", icon: MessageSquare },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {

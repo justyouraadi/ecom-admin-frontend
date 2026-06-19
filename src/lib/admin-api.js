@@ -188,6 +188,10 @@ export const api = {
   listLeads: (params = {}) =>
     request("/leads/admin", { method: "GET", query: params }),
 
+  // Settings
+  getSettings: () =>
+    request("/settings", { method: "GET" }),
+
   // Dashboard
   getDashboard: () =>
     request("/dashboard", { method: "GET" }),
