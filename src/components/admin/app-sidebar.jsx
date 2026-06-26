@@ -4,6 +4,7 @@ import {
   ShoppingBag,
   Users,
   MessageSquare,
+  LifeBuoy,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const items = [
   { title: "Orders", url: "/orders", icon: ShoppingBag },
   { title: "Users", url: "/users", icon: Users },
   { title: "Leads", url: "/leads", icon: MessageSquare },
+  { title: "Tickets", url: "/tickets", icon: LifeBuoy },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

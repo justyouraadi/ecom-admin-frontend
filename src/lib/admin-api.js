@@ -195,6 +195,25 @@ export const api = {
   updateSettings: (form) =>
     request("/settings", { method: "PUT", body: form }),
 
+  // Tickets
+  listTickets: (params = {}) =>
+    request("/tickets/admin", { method: "GET", query: params }),
+
+  getTicket: (id) =>
+    request(`/tickets/admin/${id}`, { method: "GET" }),
+
+  updateTicketStatus: (id, status) =>
+    request(`/tickets/admin/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    }),
+
+  replyToTicket: (id, form) =>
+    request(`/tickets/admin/${id}/messages`, {
+      method: "POST",
+      body: form,
+    }),
+
   // Dashboard
   getDashboard: () =>
     request("/dashboard", { method: "GET" }),

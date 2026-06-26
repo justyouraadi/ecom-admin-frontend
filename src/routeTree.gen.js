@@ -16,10 +16,12 @@ import { Route as AdminSettingsRouteImport } from './routes/_admin.settings'
 import { Route as AdminDashboardRouteImport } from './routes/_admin.dashboard'
 import { Route as AdminAdminsRouteImport } from './routes/_admin.admins'
 import { Route as AdminUsersIndexRouteImport } from './routes/_admin.users.index'
+import { Route as AdminTicketsIndexRouteImport } from './routes/_admin.tickets.index'
 import { Route as AdminProductsIndexRouteImport } from './routes/_admin.products.index'
 import { Route as AdminOrdersIndexRouteImport } from './routes/_admin.orders.index'
 import { Route as AdminLeadsIndexRouteImport } from './routes/_admin.leads.index'
 import { Route as AdminUsersIdRouteImport } from './routes/_admin.users.$id'
+import { Route as AdminTicketsIdRouteImport } from './routes/_admin.tickets.$id'
 import { Route as AdminProductsNewRouteImport } from './routes/_admin.products.new'
 import { Route as AdminProductsIdRouteImport } from './routes/_admin.products.$id'
 import { Route as AdminOrdersIdRouteImport } from './routes/_admin.orders.$id'
@@ -58,6 +60,11 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => AdminRoute,
 })
+const AdminTicketsIndexRoute = AdminTicketsIndexRouteImport.update({
+  id: '/tickets/',
+  path: '/tickets/',
+  getParentRoute: () => AdminRoute,
+})
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
   id: '/products/',
   path: '/products/',
@@ -76,6 +83,11 @@ const AdminLeadsIndexRoute = AdminLeadsIndexRouteImport.update({
 const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   id: '/users/$id',
   path: '/users/$id',
+  getParentRoute: () => AdminRoute,
+})
+const AdminTicketsIdRoute = AdminTicketsIdRouteImport.update({
+  id: '/tickets/$id',
+  path: '/tickets/$id',
   getParentRoute: () => AdminRoute,
 })
 const AdminProductsNewRoute = AdminProductsNewRouteImport.update({
@@ -101,10 +113,12 @@ const AdminRouteChildren = {
   AdminOrdersIdRoute: AdminOrdersIdRoute,
   AdminProductsIdRoute: AdminProductsIdRoute,
   AdminProductsNewRoute: AdminProductsNewRoute,
+  AdminTicketsIdRoute: AdminTicketsIdRoute,
   AdminUsersIdRoute: AdminUsersIdRoute,
   AdminLeadsIndexRoute: AdminLeadsIndexRoute,
   AdminOrdersIndexRoute: AdminOrdersIndexRoute,
   AdminProductsIndexRoute: AdminProductsIndexRoute,
+  AdminTicketsIndexRoute: AdminTicketsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
 
