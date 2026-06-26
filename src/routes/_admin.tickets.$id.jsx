@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { api, ApiError, imageUrl } from "@/lib/admin-api";
+import { ticketUrl } from "../lib/admin-api";
 
 const statusTone = {
   OPEN: "bg-accent text-accent-foreground",
@@ -194,7 +195,7 @@ function TicketDetail() {
                             {m.attachments.map((a, i) => (
                               <img
                                 key={i}
-                                src={imageUrl(a)}
+                                src={ticketUrl(a)}
                                 alt={`attachment ${i + 1}`}
                                 className="h-20 w-20 rounded-xl object-cover border border-border/40"
                               />

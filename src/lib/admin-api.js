@@ -3,6 +3,7 @@ const TOKEN_KEY = "admin.token";
 const DEFAULT_BASE_URL = "https://api.lemonbalmtrading.in/api/v1";
 const ASSETS_BASE_URL = "https://assets.lemonbalmtrading.in/public/image";
 const PDF_BASE_URL = "https://assets.lemonbalmtrading.in/public/pdfs";
+const TICKETS_BASE_URL = "https://assets.lemonbalmtrading.in/public/tickets";
 
 export function getBaseUrl() {
   return localStorage.getItem(BASE_URL_KEY) || DEFAULT_BASE_URL;
@@ -93,6 +94,11 @@ export function imageUrl(path) {
 export function pdfUrl(path) {
   if (!path) return null;
   return `${PDF_BASE_URL}/${path.replace(/^\//, "")}`;
+}
+
+export function ticketUrl(path) {
+  if (!path) return null;
+  return `${TICKETS_BASE_URL}/${path.replace(/^\//, "")}`;
 }
 
 export const api = {
