@@ -221,6 +221,6 @@ export const api = {
     }),
 
   // Dashboard
-  getDashboard: () =>
-    request("/dashboard", { method: "GET" }),
+  getDashboard: (params = {}) =>
+    request("/dashboard", { method: "GET", query: params }),
 };

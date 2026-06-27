@@ -1,5 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import {
+  LayoutDashboard,
   Package,
   ShoppingBag,
   Users,
@@ -24,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const items = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Products", url: "/products", icon: Package },
   { title: "Orders", url: "/orders", icon: ShoppingBag },
   { title: "Users", url: "/users", icon: Users },
