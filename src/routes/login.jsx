@@ -26,7 +26,7 @@ function LoginPage() {
       const data = await api.login(email, password);
       setToken(data.jwt);
       toast.success("Welcome back");
-      router.navigate({ to: "/products" });
+      router.navigate({ to: "/dashboard" });
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Login failed");
     } finally {

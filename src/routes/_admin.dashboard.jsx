@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import {
   IndianRupee,
@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -57,11 +56,11 @@ function Dashboard() {
 
   const statCards = data ? [
     { label: "Revenue", value: `₹${Number(data.totalSales).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, icon: IndianRupee },
-    { label: "Orders", value: data.totalOrders, icon: ShoppingBag },
-    { label: "Users", value: data.totalUsers, icon: Users },
-    { label: "Products", value: data.totalProducts, icon: Package },
-    { label: "Tickets", value: data.totalTickets, icon: LifeBuoy },
-    { label: "Leads", value: data.totalLeads, icon: MessageSquare },
+    { label: "Orders", value: data.totalOrders, icon: ShoppingBag, to: "/orders" },
+    { label: "Users", value: data.totalUsers, icon: Users, to: "/users" },
+    { label: "Products", value: data.totalProducts, icon: Package, to: "/products" },
+    { label: "Tickets", value: data.totalTickets, icon: LifeBuoy, to: "/tickets" },
+    { label: "Leads", value: data.totalLeads, icon: MessageSquare, to: "/leads" },
   ] : [];
 
   const orderColors = {
@@ -129,19 +128,28 @@ function Dashboard() {
       ) : data ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {statCards.map((c) => (
-              <Card key={c.label} className="rounded-2xl border-border/60 shadow-soft">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-normal text-muted-foreground">{c.label}</CardTitle>
-                  <div className="h-8 w-8 grid place-items-center rounded-lg bg-accent/70">
-                    <c.icon className="h-4 w-4 text-accent-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-medium tracking-tight">{c.value}</div>
-                </CardContent>
-              </Card>
-            ))}
+            {statCards.map((c) => {
+              const inner = (
+                <Card className="rounded-2xl border-border/60 shadow-soft hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-normal text-muted-foreground">{c.label}</CardTitle>
+                    <div className="h-8 w-8 grid place-items-center rounded-lg bg-accent/70">
+                      <c.icon className="h-4 w-4 text-accent-foreground" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-medium tracking-tight">{c.value}</div>
+                  </CardContent>
+                </Card>
+              );
+              return c.to ? (
+                <Link key={c.label} to={c.to} className="block">
+                  {inner}
+                </Link>
+              ) : (
+                <div key={c.label}>{inner}</div>
+              );
+            })}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
