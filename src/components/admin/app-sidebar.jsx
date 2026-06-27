@@ -6,6 +6,7 @@ import {
   Users,
   MessageSquare,
   LifeBuoy,
+  Store,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const items = [
   { title: "Users", url: "/users", icon: Users },
   { title: "Leads", url: "/leads", icon: MessageSquare },
   { title: "Tickets", url: "/tickets", icon: LifeBuoy },
+  { title: "Branches", url: "/branches", icon: Store },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

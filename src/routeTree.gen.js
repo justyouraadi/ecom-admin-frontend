@@ -20,11 +20,14 @@ import { Route as AdminTicketsIndexRouteImport } from './routes/_admin.tickets.i
 import { Route as AdminProductsIndexRouteImport } from './routes/_admin.products.index'
 import { Route as AdminOrdersIndexRouteImport } from './routes/_admin.orders.index'
 import { Route as AdminLeadsIndexRouteImport } from './routes/_admin.leads.index'
+import { Route as AdminBranchesIndexRouteImport } from './routes/_admin.branches.index'
 import { Route as AdminUsersIdRouteImport } from './routes/_admin.users.$id'
 import { Route as AdminTicketsIdRouteImport } from './routes/_admin.tickets.$id'
 import { Route as AdminProductsNewRouteImport } from './routes/_admin.products.new'
 import { Route as AdminProductsIdRouteImport } from './routes/_admin.products.$id'
 import { Route as AdminOrdersIdRouteImport } from './routes/_admin.orders.$id'
+import { Route as AdminBranchesNewRouteImport } from './routes/_admin.branches.new'
+import { Route as AdminBranchesIdRouteImport } from './routes/_admin.branches.$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -80,6 +83,11 @@ const AdminLeadsIndexRoute = AdminLeadsIndexRouteImport.update({
   path: '/leads/',
   getParentRoute: () => AdminRoute,
 })
+const AdminBranchesIndexRoute = AdminBranchesIndexRouteImport.update({
+  id: '/branches/',
+  path: '/branches/',
+  getParentRoute: () => AdminRoute,
+})
 const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   id: '/users/$id',
   path: '/users/$id',
@@ -105,16 +113,29 @@ const AdminOrdersIdRoute = AdminOrdersIdRouteImport.update({
   path: '/orders/$id',
   getParentRoute: () => AdminRoute,
 })
+const AdminBranchesNewRoute = AdminBranchesNewRouteImport.update({
+  id: '/branches/new',
+  path: '/branches/new',
+  getParentRoute: () => AdminRoute,
+})
+const AdminBranchesIdRoute = AdminBranchesIdRouteImport.update({
+  id: '/branches/$id',
+  path: '/branches/$id',
+  getParentRoute: () => AdminRoute,
+})
 
 const AdminRouteChildren = {
   AdminAdminsRoute: AdminAdminsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminBranchesIdRoute: AdminBranchesIdRoute,
+  AdminBranchesNewRoute: AdminBranchesNewRoute,
   AdminOrdersIdRoute: AdminOrdersIdRoute,
   AdminProductsIdRoute: AdminProductsIdRoute,
   AdminProductsNewRoute: AdminProductsNewRoute,
   AdminTicketsIdRoute: AdminTicketsIdRoute,
   AdminUsersIdRoute: AdminUsersIdRoute,
+  AdminBranchesIndexRoute: AdminBranchesIndexRoute,
   AdminLeadsIndexRoute: AdminLeadsIndexRoute,
   AdminOrdersIndexRoute: AdminOrdersIndexRoute,
   AdminProductsIndexRoute: AdminProductsIndexRoute,

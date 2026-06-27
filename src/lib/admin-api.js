@@ -223,4 +223,20 @@ export const api = {
   // Dashboard
   getDashboard: (params = {}) =>
     request("/dashboard", { method: "GET", query: params }),
+
+  // Branches
+  listBranches: () =>
+    request("/branches", { method: "GET" }),
+
+  getBranch: (id) =>
+    request(`/branches/${id}`, { method: "GET" }),
+
+  createBranch: (form) =>
+    request("/branches", { method: "POST", body: form }),
+
+  updateBranch: (id, form) =>
+    request(`/branches/${id}`, { method: "PUT", body: form }),
+
+  deleteBranch: (id) =>
+    request(`/branches/${id}`, { method: "DELETE" }),
 };
