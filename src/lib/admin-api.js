@@ -247,6 +247,9 @@ export const api = {
   getTeamMember: (id) =>
     request(`/team/${id}`, { method: "GET" }),
 
+  createTeamMember: (form) =>
+    request("/team", { method: "POST", body: form }),
+
   updateTeamMember: (id, form) =>
     request(`/team/${id}`, { method: "PUT", body: form }),
 

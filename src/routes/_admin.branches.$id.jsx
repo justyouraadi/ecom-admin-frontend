@@ -30,6 +30,8 @@ function BranchDetail() {
   const [teamLoading, setTeamLoading] = useState(true);
   const [editingMember, setEditingMember] = useState(null);
   const [memberUpdating, setMemberUpdating] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [addingMember, setAddingMember] = useState(false);
 
   useEffect(() => {
     api.getBranch(id).then((data) => {
@@ -101,6 +103,22 @@ function BranchDetail() {
       window.history.back();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed to delete branch");
+    }
+  }
+
+  async function handleAddMember(e) {
+    e.preventDefault();
+    setAddingMember(true);
+    const fd = new FormData(e.currentTarget);
+    try {
+      const result = await api.createTeamMember(fd);
+      setTeam((prev) => [...prev, result]);
+      setShowAddMember(false);
+      toast.success("Team member added");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed to add team member");
+    } finally {
+      setAddingMember(false);
     }
   }
 
@@ -286,11 +304,44 @@ function BranchDetail() {
 
       <Card className="rounded-2xl border-border/60 shadow-soft">
         <CardHeader>
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            <Users className="h-4 w-4" />Team ({team.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <Users className="h-4 w-4" />Team ({team.length})
+            </CardTitle>
+            {!showAddMember && (
+              <Button variant="outline" size="sm" onClick={() => setShowAddMember(true)} className="rounded-lg h-8 text-xs">
+                <UserIcon className="h-3.5 w-3.5 mr-1" />Add member
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
+          {showAddMember && (
+            <form onSubmit={handleAddMember} className="mb-5 pb-5 border-b border-border/40 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">New team member</span>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddMember(false)} className="rounded-lg h-8 text-xs">
+                  <X className="h-3.5 w-3.5 mr-1" />Cancel
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2"><Label htmlFor="new-name">Name</Label><Input id="new-name" name="name" required className="h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label htmlFor="new-email">Email</Label><Input id="new-email" name="email" type="email" required className="h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label htmlFor="new-phone">Phone</Label><Input id="new-phone" name="phone" required className="h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label htmlFor="new-password">Password</Label><Input id="new-password" name="password" type="password" required className="h-11 rounded-xl" /></div>
+              </div>
+              <input type="hidden" name="assignedBranch" value={branch.id} />
+              <div className="space-y-2">
+                <Label htmlFor="new-pic">Profile picture</Label>
+                <Input id="new-pic" name="profilePicture" type="file" accept="image/*" className="h-10 rounded-xl text-sm" />
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit" size="sm" disabled={addingMember} className="rounded-xl">
+                  {addingMember ? "Adding…" : "Add member"}
+                </Button>
+              </div>
+            </form>
+          )}
           {teamLoading ? (
             <p className="text-sm text-muted-foreground text-center py-4">Loading team…</p>
           ) : team.length === 0 ? (
