@@ -239,4 +239,17 @@ export const api = {
 
   deleteBranch: (id) =>
     request(`/branches/${id}`, { method: "DELETE" }),
+
+  // Team
+  listTeamByBranch: (branchId) =>
+    request("/team", { method: "GET", query: { branchId } }),
+
+  getTeamMember: (id) =>
+    request(`/team/${id}`, { method: "GET" }),
+
+  updateTeamMember: (id, form) =>
+    request(`/team/${id}`, { method: "PUT", body: form }),
+
+  deleteTeamMember: (id) =>
+    request(`/team/${id}`, { method: "DELETE" }),
 };

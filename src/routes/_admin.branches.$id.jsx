@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, Store, MapPin, Phone, Mail, Calendar, Trash2, Pencil, X, Check } from "lucide-react";
+import { ArrowLeft, Store, MapPin, Phone, Mail, Calendar, Trash2, Pencil, X, Check, Users, User as UserIcon, Shield, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,11 @@ function BranchDetail() {
   const [logoPreview, setLogoPreview] = useState(null);
   const logoRef = useRef(null);
 
+  const [team, setTeam] = useState([]);
+  const [teamLoading, setTeamLoading] = useState(true);
+  const [editingMember, setEditingMember] = useState(null);
+  const [memberUpdating, setMemberUpdating] = useState(false);
+
   useEffect(() => {
     api.getBranch(id).then((data) => {
       setBranch(data);
@@ -35,15 +40,24 @@ function BranchDetail() {
     });
   }, [id]);
 
+  useEffect(() => {
+    if (id) {
+      api.listTeamByBranch(Number(id)).then((data) => {
+        setTeam(data.team ?? []);
+        setTeamLoading(false);
+      }).catch(() => {
+        setTeamLoading(false);
+      });
+    }
+  }, [id]);
+
   async function handleUpdate(e) {
     e.preventDefault();
     setSubmitting(true);
-
     const fd = new FormData(e.currentTarget);
     const textFields = ["name", "address", "city", "state", "country", "pincode", "phone", "email"];
     const fdClean = new FormData();
     let hasChanges = false;
-
     for (const key of textFields) {
       const val = fd.get(key)?.trim();
       if (val !== undefined && val !== String(branch[key] ?? "")) {
@@ -51,24 +65,20 @@ function BranchDetail() {
         hasChanges = true;
       }
     }
-
     const statusVal = fd.get("status") === "on";
     if (statusVal !== branch.status) {
       fdClean.append("status", statusVal);
       hasChanges = true;
     }
-
     if (logoFile) {
       fdClean.append("logo", logoFile);
       hasChanges = true;
     }
-
     if (!hasChanges) {
       toast.info("No changes to save.");
       setSubmitting(false);
       return;
     }
-
     try {
       const result = await api.updateBranch(branch.id, fdClean);
       setBranch(result);
@@ -94,6 +104,70 @@ function BranchDetail() {
     }
   }
 
+  async function handleMemberUpdate(e) {
+    e.preventDefault();
+    setMemberUpdating(true);
+    const fd = new FormData(e.currentTarget);
+    const fdClean = new FormData();
+    let hasChanges = false;
+
+    const textFields = ["name", "email", "phone", "password"];
+    for (const key of textFields) {
+      const val = fd.get(key)?.trim();
+      if (val && val !== String(editingMember[key] ?? "")) {
+        fdClean.append(key, val);
+        hasChanges = true;
+      }
+    }
+
+    const assignedBranch = fd.get("assignedBranch")?.trim();
+    if (assignedBranch && Number(assignedBranch) !== Number(editingMember.assignedBranch)) {
+      fdClean.append("assignedBranch", assignedBranch);
+      hasChanges = true;
+    }
+
+    const statusVal = fd.get("status") === "on";
+    if (statusVal !== editingMember.status) {
+      fdClean.append("status", statusVal);
+      hasChanges = true;
+    }
+
+    const picFile = fd.get("profilePicture");
+    if (picFile && picFile.size > 0) {
+      fdClean.append("profilePicture", picFile);
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      toast.info("No changes to save.");
+      setMemberUpdating(false);
+      return;
+    }
+
+    try {
+      const result = await api.updateTeamMember(editingMember.id, fdClean);
+      setTeam((prev) => prev.map((m) => m.id === result.id ? result : m));
+      setEditingMember(null);
+      toast.success("Team member updated");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed to update team member");
+    } finally {
+      setMemberUpdating(false);
+    }
+  }
+
+  async function handleMemberDelete(memberId) {
+    if (!confirm("Remove this team member?")) return;
+    try {
+      await api.deleteTeamMember(memberId);
+      setTeam((prev) => prev.filter((m) => m.id !== memberId));
+      setEditingMember(null);
+      toast.success("Team member removed");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed to delete team member");
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-2xl space-y-5">
@@ -115,19 +189,12 @@ function BranchDetail() {
             <X className="h-4 w-4 mr-2" />Cancel
           </Button>
         </div>
-
         <form onSubmit={handleUpdate} className="space-y-6">
           <Card className="rounded-2xl border-border/60 shadow-soft">
-            <CardHeader>
-              <CardTitle className="text-base font-medium">Edit branch</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-base font-medium">Edit branch</CardTitle></CardHeader>
             <CardContent className="space-y-5">
               {(logoPreview || branch.logo) && (
-                <img
-                  src={logoPreview || imageUrl(branch.logo)}
-                  alt="Branch logo"
-                  className="h-20 w-20 rounded-xl object-cover border border-border/60"
-                />
+                <img src={logoPreview || imageUrl(branch.logo)} alt="Branch logo" className="h-20 w-20 rounded-xl object-cover border border-border/60" />
               )}
               <Field id="logo" label="Logo" type="file" accept="image/*" ref={logoRef} onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -151,11 +218,9 @@ function BranchDetail() {
               </div>
             </CardContent>
           </Card>
-
           <div className="flex justify-end gap-3">
             <Button type="submit" disabled={submitting} className="rounded-xl">
-              <Check className="h-4 w-4 mr-1.5" />
-              {submitting ? "Saving…" : "Save changes"}
+              <Check className="h-4 w-4 mr-1.5" />{submitting ? "Saving…" : "Save changes"}
             </Button>
           </div>
         </form>
@@ -189,20 +254,14 @@ function BranchDetail() {
         )}
         <div>
           <h1 className="text-2xl font-medium tracking-tight">{branch.name}</h1>
-          <Badge
-            className={`rounded-full font-normal text-sm tracking-wide px-3 py-1 border-0 mt-1 ${
-              branch.status ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-            }`}
-          >
+          <Badge className={`rounded-full font-normal text-sm tracking-wide px-3 py-1 border-0 mt-1 ${branch.status ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
             {branch.status ? "active" : "inactive"}
           </Badge>
         </div>
       </div>
 
       <Card className="rounded-2xl border-border/60 shadow-soft">
-        <CardHeader>
-          <CardTitle className="text-base font-medium">Details</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base font-medium">Details</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2 text-sm">
             <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -213,12 +272,10 @@ function BranchDetail() {
             <span>{branch.country}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span>{branch.phone}</span>
+            <Phone className="h-4 w-4 text-muted-foreground shrink-0" /><span>{branch.phone}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span>{branch.email}</span>
+            <Mail className="h-4 w-4 text-muted-foreground shrink-0" /><span>{branch.email}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4 shrink-0" />
@@ -226,19 +283,97 @@ function BranchDetail() {
           </div>
         </CardContent>
       </Card>
+
+      <Card className="rounded-2xl border-border/60 shadow-soft">
+        <CardHeader>
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Users className="h-4 w-4" />Team ({team.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {teamLoading ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Loading team…</p>
+          ) : team.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No team members assigned.</p>
+          ) : (
+            <div className="divide-y divide-border/40">
+              {team.map((m) => (
+                editingMember?.id === m.id ? (
+                  <form key={m.id} onSubmit={handleMemberUpdate} className="py-4 first:pt-0 last:pb-0 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Edit {m.name}</span>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setEditingMember(null)} className="rounded-lg h-8 text-xs">
+                          <X className="h-3.5 w-3.5 mr-1" />Cancel
+                        </Button>
+                        <Button type="submit" size="sm" disabled={memberUpdating} className="rounded-lg h-8 text-xs">
+                          <Check className="h-3.5 w-3.5 mr-1" />{memberUpdating ? "Saving…" : "Save"}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field id={`name-${m.id}`} name="name" label="Name" defaultValue={m.name} />
+                      <Field id={`email-${m.id}`} name="email" label="Email" defaultValue={m.email} />
+                      <Field id={`phone-${m.id}`} name="phone" label="Phone" defaultValue={m.phone} />
+                      <Field id={`password-${m.id}`} name="password" label="Password" type="password" placeholder="New password" />
+                    </div>
+                    <input type="hidden" name="assignedBranch" value={branch.id} />
+                    <div className="flex items-center gap-3">
+                      <Switch id={`status-${m.id}`} name="status" defaultChecked={m.status} />
+                      <Label htmlFor={`status-${m.id}`}>Active</Label>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`pic-${m.id}`}>Profile picture</Label>
+                      <Input id={`pic-${m.id}`} name="profilePicture" type="file" accept="image/*" className="h-10 rounded-xl text-sm" />
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => handleMemberDelete(m.id)} className="rounded-lg text-destructive h-8 text-xs">
+                      <Trash2 className="h-3.5 w-3.5 mr-1" />Remove member
+                    </Button>
+                  </form>
+                ) : (
+                  <div key={m.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                    {m.profilePicture ? (
+                      <img src={imageUrl(m.profilePicture)} alt={m.name} className="h-9 w-9 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-accent grid place-items-center shrink-0">
+                        <UserIcon className="h-4 w-4 text-accent-foreground/60" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">{m.name}</div>
+                      <div className="text-xs text-muted-foreground">{m.email} &middot; {m.phone}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {m.status ? (
+                        <Shield className="h-4 w-4 text-primary/60" />
+                      ) : (
+                        <ShieldOff className="h-4 w-4 text-muted-foreground/40" />
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => setEditingMember(m)} className="rounded-lg h-8 w-8 p-0">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-const Field = ({ id, label, defaultValue, type, accept, ref, onChange }) => (
+const Field = ({ id, label, defaultValue, type, accept, ref, onChange, name, placeholder }) => (
   <div className="space-y-2">
-    <Label htmlFor={id}>{label}</Label>
+    <Label htmlFor={id || name}>{label}</Label>
     <Input
-      id={id}
-      name={id}
+      id={id || name}
+      name={name}
       type={type || "text"}
       accept={accept}
       defaultValue={defaultValue}
+      placeholder={placeholder}
       ref={ref}
       onChange={onChange}
       className="h-11 rounded-xl"
