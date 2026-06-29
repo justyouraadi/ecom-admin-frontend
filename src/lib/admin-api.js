@@ -139,6 +139,15 @@ export const api = {
   updateProduct: (id, form) =>
     request(`/products/${id}`, { method: "PUT", body: form }),
 
+  updateProductStock: (id, stock) =>
+    request(`/products/stock/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ availableStock: stock }),
+    }),
+
+  updateProductEdit: (id, form) =>
+    request(`/products/edit/${id}`, { method: "PUT", body: form }),
+
   deleteProduct: (id) =>
     request(`/products/${id}`, { method: "DELETE" }),
 
