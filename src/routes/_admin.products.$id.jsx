@@ -30,6 +30,7 @@ function ProductDetail() {
   const [stockInput, setStockInput] = useState("");
   const [editFiles, setEditFiles] = useState([]);
   const [editPreviews, setEditPreviews] = useState([]);
+  const [deleting, setDeleting] = useState(false);
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -73,6 +74,19 @@ function ProductDetail() {
       toast.error(err instanceof ApiError ? err.message : "Failed to update product");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("Delete this product? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      await api.deleteProduct(product.id);
+      toast.success("Product deleted");
+      router.navigate({ to: "/products" });
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed to delete product");
+      setDeleting(false);
     }
   }
 
@@ -181,6 +195,9 @@ function ProductDetail() {
         </Button>
         <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="rounded-xl">
           <Pencil className="h-4 w-4 mr-1.5" />Edit
+        </Button>
+        <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting} className="rounded-xl">
+          <Trash2 className="h-4 w-4 mr-1.5" />{deleting ? "Deleting…" : "Delete"}
         </Button>
       </div>
 
