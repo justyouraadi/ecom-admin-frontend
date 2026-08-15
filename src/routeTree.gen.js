@@ -19,6 +19,7 @@ import { Route as AdminUsersIndexRouteImport } from './routes/_admin.users.index
 import { Route as AdminTicketsIndexRouteImport } from './routes/_admin.tickets.index'
 import { Route as AdminProductsIndexRouteImport } from './routes/_admin.products.index'
 import { Route as AdminOrdersIndexRouteImport } from './routes/_admin.orders.index'
+import { Route as AdminManualOrdersIndexRouteImport } from './routes/_admin.manual-orders.index'
 import { Route as AdminLeadsIndexRouteImport } from './routes/_admin.leads.index'
 import { Route as AdminBranchesIndexRouteImport } from './routes/_admin.branches.index'
 import { Route as AdminUsersIdRouteImport } from './routes/_admin.users.$id'
@@ -26,6 +27,8 @@ import { Route as AdminTicketsIdRouteImport } from './routes/_admin.tickets.$id'
 import { Route as AdminProductsNewRouteImport } from './routes/_admin.products.new'
 import { Route as AdminProductsIdRouteImport } from './routes/_admin.products.$id'
 import { Route as AdminOrdersIdRouteImport } from './routes/_admin.orders.$id'
+import { Route as AdminManualOrdersNewRouteImport } from './routes/_admin.manual-orders.new'
+import { Route as AdminManualOrdersIdRouteImport } from './routes/_admin.manual-orders.$id'
 import { Route as AdminBranchesNewRouteImport } from './routes/_admin.branches.new'
 import { Route as AdminBranchesIdRouteImport } from './routes/_admin.branches.$id'
 
@@ -78,6 +81,11 @@ const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
   path: '/orders/',
   getParentRoute: () => AdminRoute,
 })
+const AdminManualOrdersIndexRoute = AdminManualOrdersIndexRouteImport.update({
+  id: '/manual-orders/',
+  path: '/manual-orders/',
+  getParentRoute: () => AdminRoute,
+})
 const AdminLeadsIndexRoute = AdminLeadsIndexRouteImport.update({
   id: '/leads/',
   path: '/leads/',
@@ -113,6 +121,16 @@ const AdminOrdersIdRoute = AdminOrdersIdRouteImport.update({
   path: '/orders/$id',
   getParentRoute: () => AdminRoute,
 })
+const AdminManualOrdersNewRoute = AdminManualOrdersNewRouteImport.update({
+  id: '/manual-orders/new',
+  path: '/manual-orders/new',
+  getParentRoute: () => AdminRoute,
+})
+const AdminManualOrdersIdRoute = AdminManualOrdersIdRouteImport.update({
+  id: '/manual-orders/$id',
+  path: '/manual-orders/$id',
+  getParentRoute: () => AdminRoute,
+})
 const AdminBranchesNewRoute = AdminBranchesNewRouteImport.update({
   id: '/branches/new',
   path: '/branches/new',
@@ -130,6 +148,8 @@ const AdminRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminBranchesIdRoute: AdminBranchesIdRoute,
   AdminBranchesNewRoute: AdminBranchesNewRoute,
+  AdminManualOrdersIdRoute: AdminManualOrdersIdRoute,
+  AdminManualOrdersNewRoute: AdminManualOrdersNewRoute,
   AdminOrdersIdRoute: AdminOrdersIdRoute,
   AdminProductsIdRoute: AdminProductsIdRoute,
   AdminProductsNewRoute: AdminProductsNewRoute,
@@ -137,6 +157,7 @@ const AdminRouteChildren = {
   AdminUsersIdRoute: AdminUsersIdRoute,
   AdminBranchesIndexRoute: AdminBranchesIndexRoute,
   AdminLeadsIndexRoute: AdminLeadsIndexRoute,
+  AdminManualOrdersIndexRoute: AdminManualOrdersIndexRoute,
   AdminOrdersIndexRoute: AdminOrdersIndexRoute,
   AdminProductsIndexRoute: AdminProductsIndexRoute,
   AdminTicketsIndexRoute: AdminTicketsIndexRoute,

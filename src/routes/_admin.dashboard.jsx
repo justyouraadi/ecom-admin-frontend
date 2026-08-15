@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   IndianRupee,
   ShoppingBag,
+  ClipboardList,
   Users,
   Package,
   LifeBuoy,
@@ -57,6 +58,7 @@ function Dashboard() {
   const statCards = data ? [
     { label: "Revenue", value: `₹${Number(data.totalSales).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, icon: IndianRupee },
     { label: "Orders", value: data.totalOrders, icon: ShoppingBag, to: "/orders" },
+    { label: "Manual Orders", value: data.totalManualOrders, icon: ClipboardList, to: "/manual-orders" },
     { label: "Users", value: data.totalUsers, icon: Users, to: "/users" },
     { label: "Products", value: data.totalProducts, icon: Package, to: "/products" },
     { label: "Tickets", value: data.totalTickets, icon: LifeBuoy, to: "/tickets" },
@@ -168,6 +170,28 @@ function Dashboard() {
                       <div
                         className={`h-full rounded-full transition-all ${orderColors[key] || "bg-accent"}`}
                         style={{ width: `${data.totalOrders > 0 ? (count / data.totalOrders) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-border/60 shadow-soft">
+              <CardHeader>
+                <CardTitle className="text-base font-medium">Manual orders by status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(Object.entries(data.manualOrderBreakdown || {})).map(([key, count]) => (
+                  <div key={key} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="capitalize">{key.replace(/([A-Z])/g, " $1").trim()}</span>
+                      <span className="font-medium tabular-nums">{count}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-accent/50 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${orderColors[key] || "bg-accent"}`}
+                        style={{ width: `${data.totalManualOrders > 0 ? (count / data.totalManualOrders) * 100 : 0}%` }}
                       />
                     </div>
                   </div>

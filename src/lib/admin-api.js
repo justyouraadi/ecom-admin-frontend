@@ -167,6 +167,25 @@ export const api = {
   generateInvoice: (id) =>
     request(`/orders/${id}/invoice`, { method: "PUT" }),
 
+  // Manual Orders
+  createManualOrder: (form) =>
+    request("/manual-orders", { method: "POST", body: form }),
+
+  listManualOrders: (params = {}) =>
+    request("/manual-orders", { method: "GET", query: params }),
+
+  getManualOrder: (id) =>
+    request(`/manual-orders/${id}`, { method: "GET" }),
+
+  updateManualOrderStatus: (id, status) =>
+    request(`/manual-orders/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    }),
+
+  generateManualOrderInvoice: (id) =>
+    request(`/manual-orders/${id}/invoice`, { method: "PUT" }),
+
   // Users
   listUsers: (params = {}) =>
     request("/users/admin", { method: "GET", query: params }),

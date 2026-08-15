@@ -1,0 +1,283 @@
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Package, ExternalLink, X, User } from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { api, ApiError, imageUrl, pdfUrl } from "@/lib/admin-api";
+
+const statusTone = {
+  PENDING: "bg-accent text-accent-foreground",
+  CONFIRMED: "bg-primary/15 text-primary",
+  SHIPPED: "bg-primary/25 text-primary",
+  DELIVERED: "bg-primary text-primary-foreground",
+  CANCELLED: "bg-destructive/15 text-destructive",
+};
+
+const nextStatuses = {
+  PENDING: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "CANCELLED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+
+export const Route = createFileRoute("/_admin/manual-orders/$id")({
+  ssr: false,
+  component: ManualOrderDetail,
+});
+
+function ManualOrderDetail() {
+  const { id } = Route.useParams();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [invoiceUrl, setInvoiceUrl] = useState(null);
+  const [screenshotLightbox, setScreenshotLightbox] = useState(false);
+
+  useEffect(() => {
+    api.getManualOrder(id).then((data) => {
+      setOrder(data);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
+  }, [id]);
+
+  async function handleStatusUpdate(newStatus) {
+    try {
+      await api.updateManualOrderStatus(order.id, newStatus);
+      toast.success(`Manual order #${order.id} → ${newStatus.toLowerCase()}`);
+      setOrder((prev) => prev ? { ...prev, status: newStatus } : prev);
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Status update failed");
+    }
+  }
+
+  async function handleGenerateInvoice() {
+    setGenerating(true);
+    try {
+      const result = await api.generateManualOrderInvoice(order.id);
+      const url = pdfUrl(result.invoiceUrl);
+      setInvoiceUrl(url);
+      toast.success("Invoice generated");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Invoice generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl space-y-5">
+        <Button variant="ghost" size="sm" asChild className="rounded-lg -ml-2">
+          <Link to="/manual-orders"><ArrowLeft className="h-4 w-4 mr-2" />Back</Link>
+        </Button>
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!order) throw notFound();
+
+  const p = order.product || {};
+  const next = nextStatuses[order.status] || [];
+
+  return (
+    <div className="max-w-5xl space-y-6">
+      <Button variant="ghost" size="sm" asChild className="rounded-lg -ml-2">
+        <Link to="/manual-orders"><ArrowLeft className="h-4 w-4 mr-2" />Back to manual orders</Link>
+      </Button>
+
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight">
+            Manual order <span className="font-mono text-muted-foreground">#{order.id}</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Created on {new Date(order.createdAt).toLocaleDateString()}
+            {order.admin?.name && <> · by {order.admin.name}</>}
+          </p>
+        </div>
+        <Badge
+          className={`${statusTone[order.status] || "bg-muted text-muted-foreground"} rounded-full font-normal text-sm tracking-wide px-3 py-1 border-0`}
+        >
+          {order.status.toLowerCase()}
+        </Badge>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3 space-y-6">
+          <Card className="rounded-2xl border-border/60 shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-base font-medium">Product</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4">
+                {p.assets?.[0] ? (
+                  <img
+                    src={imageUrl(p.assets[0])}
+                    alt={p.name}
+                    className="h-24 w-24 rounded-xl object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="h-24 w-24 rounded-xl bg-accent grid place-items-center shrink-0">
+                    <Package className="h-6 w-6 text-accent-foreground/60" />
+                  </div>
+                )}
+                <div className="min-w-0 space-y-1.5">
+                  <div className="font-medium">{p.name || "—"}</div>
+                  {p.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
+                  )}
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">HSN:</span> {p.hsnCode || "—"}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-border/60 shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-base font-medium">Order details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 text-sm">
+                <Field label="Quantity" value={String(order.quantity)} />
+                <Field label="Total amount" value={`₹${order.totalAmount}`} />
+                <Field label="Transaction ID" value={order.transactionId || "—"} />
+                <Field label="Created" value={new Date(order.createdAt).toLocaleDateString()} />
+                <Field label="Updated" value={new Date(order.updatedAt).toLocaleDateString()} />
+              </div>
+              {order.paymentScreenshot && (
+                <div>
+                  <div className="text-[11px] uppercase text-muted-foreground tracking-wider mb-2">Payment screenshot</div>
+                  <button
+                    onClick={() => setScreenshotLightbox(true)}
+                    className="block rounded-xl border border-border/60 overflow-hidden hover:opacity-80 transition-opacity"
+                  >
+                    <img
+                      src={imageUrl(order.paymentScreenshot)}
+                      alt="Payment screenshot"
+                      className="max-h-48 w-auto object-contain"
+                    />
+                  </button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-border/60 shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-base font-medium">Invoice</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {(order.invoice || invoiceUrl) ? (
+                <a
+                  href={invoiceUrl || pdfUrl(order.invoice)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  View invoice
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground">No invoice generated yet.</p>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateInvoice}
+                disabled={generating}
+                className="rounded-xl"
+              >
+                {generating ? "Generating…" : (order.invoice || invoiceUrl) ? "Regenerate" : "Generate invoice"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="rounded-2xl border-border/60 shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-base font-medium">Customer</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <Field label="Name" value={order.customerName || "—"} />
+              <Field label="Phone" value={order.customerPhone || "—"} />
+              <Field label="Email" value={order.customerEmail || "—"} />
+              <Field label="Guardian" value={order.guardianName || "—"} />
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-border/60 shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-base font-medium">Delivery</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <Field label="Address" value={order.address || "—"} />
+              <Field label="Remark" value={order.remark || "—"} />
+            </CardContent>
+          </Card>
+
+          {next.length > 0 && (
+            <Card className="rounded-2xl border-border/60 shadow-soft border-primary/20">
+              <CardHeader>
+                <CardTitle className="text-base font-medium">Update status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {next.map((ns) => (
+                    <Button
+                      key={ns}
+                      size="sm"
+                      variant={ns === "CANCELLED" ? "outline" : "default"}
+                      onClick={() => handleStatusUpdate(ns)}
+                      className="rounded-xl"
+                    >
+                      {ns === "CANCELLED" ? "Cancel order" : `Mark ${ns.toLowerCase()}`}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {screenshotLightbox && order.paymentScreenshot && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setScreenshotLightbox(false)}
+        >
+          <button
+            onClick={() => setScreenshotLightbox(false)}
+            className="absolute top-4 right-4 h-8 w-8 rounded-full bg-black/40 text-white grid place-items-center hover:bg-black/60"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <img
+            src={imageUrl(order.paymentScreenshot)}
+            alt="Payment screenshot"
+            className="max-w-full max-h-full object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Field({ label, value }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase text-muted-foreground tracking-wider">{label}</div>
+      <div className="mt-0.5 font-medium break-words">{value}</div>
+    </div>
+  );
+}
