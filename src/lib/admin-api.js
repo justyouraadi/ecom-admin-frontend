@@ -199,6 +199,12 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
+  resetUserPassword: (id, newPassword) =>
+    request(`/users/admin/${id}/password/reset`, {
+      method: "PUT",
+      body: JSON.stringify({ newPassword }),
+    }),
+
   // Admins
   listAdmins: (params = {}) =>
     request("/admin/list", { method: "GET", query: params }),
@@ -216,6 +222,12 @@ export const api = {
     request(`/admin/${id}/status`, {
       method: "PUT",
       body: JSON.stringify({ status }),
+    }),
+
+  changeAdminPassword: (currentPassword, newPassword) =>
+    request("/admin/password", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newPassword }),
     }),
 
   // Leads

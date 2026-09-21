@@ -1,11 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Package, Calendar, Phone, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Package, Calendar, Phone, User as UserIcon, KeyRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { api, ApiError, imageUrl } from "@/lib/admin-api";
 import { toast } from "sonner";
 
@@ -26,6 +28,7 @@ function UserDetail() {
   const { id } = Route.useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     api.getUser(id).then((data) => {
@@ -35,6 +38,26 @@ function UserDetail() {
       setLoading(false);
     });
   }, [id]);
+
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const newPassword = form.get("newPassword");
+    if (!newPassword) {
+      toast.error("New password is required");
+      return;
+    }
+    setResetting(true);
+    try {
+      await api.resetUserPassword(user.id, newPassword);
+      toast.success("Password reset");
+      e.currentTarget.reset();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed to reset password");
+    } finally {
+      setResetting(false);
+    }
+  }
 
   async function toggleStatus() {
     if (!user) return;
@@ -107,6 +130,28 @@ function UserDetail() {
                 <span className="text-sm text-muted-foreground">{user.status ? "Active" : "Disabled"}</span>
                 <Switch checked={user.status} onCheckedChange={toggleStatus} />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-border/60 shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-base font-medium flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-muted-foreground" />
+                Reset password
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleResetPassword} className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New password</Label>
+                  <Input id="newPassword" name="newPassword" type="password" required autoComplete="new-password" className="h-11 rounded-xl" />
+                </div>
+                <div className="flex justify-end">
+                  <Button type="submit" variant="outline" size="sm" disabled={resetting} className="rounded-xl">
+                    {resetting ? "Resetting…" : "Reset password"}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
         </div>

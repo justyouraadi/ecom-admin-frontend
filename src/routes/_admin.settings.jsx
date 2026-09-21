@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
+import { Lock } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ function Settings() {
   const [submitting, setSubmitting] = useState(false);
   const [qrFile, setQrFile] = useState(null);
   const [qrPreview, setQrPreview] = useState(null);
+  const [passwordUpdating, setPasswordUpdating] = useState(false);
   const qrRef = useRef(null);
 
   useEffect(() => {
@@ -78,6 +80,27 @@ function Settings() {
       toast.error(err instanceof ApiError ? err.message : "Failed to update settings");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handlePasswordSubmit(e) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const currentPassword = form.get("currentPassword");
+    const newPassword = form.get("newPassword");
+    if (!currentPassword || !newPassword) {
+      toast.error("Current and new passwords are required");
+      return;
+    }
+    setPasswordUpdating(true);
+    try {
+      await api.changeAdminPassword(currentPassword, newPassword);
+      toast.success("Password updated");
+      e.currentTarget.reset();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed to update password");
+    } finally {
+      setPasswordUpdating(false);
     }
   }
 
@@ -156,6 +179,26 @@ function Settings() {
           </Button>
         </div>
       </form>
+
+      <Card className="rounded-2xl border-border/60 shadow-soft">
+        <CardHeader>
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+            Change password
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <PasswordField id="currentPassword" label="Current password" required />
+            <PasswordField id="newPassword" label="New password" required />
+            <div className="flex justify-end pt-1">
+              <Button type="submit" variant="outline" disabled={passwordUpdating} className="rounded-xl">
+                {passwordUpdating ? "Updating…" : "Update password"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -165,6 +208,15 @@ function Field({ id, label, defaultValue }) {
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <Input id={id} name={id} defaultValue={defaultValue || ""} className="h-11 rounded-xl" />
+    </div>
+  );
+}
+
+function PasswordField({ id, label, required }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input id={id} name={id} type="password" required={required} autoComplete="new-password" className="h-11 rounded-xl" />
     </div>
   );
 }
